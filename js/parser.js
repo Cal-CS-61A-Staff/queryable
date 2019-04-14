@@ -44,10 +44,10 @@ export function parse(sqlString) {
  */
 function get_expression(buffer) {
     const helpers = {
-        "FROM": get_from,
-        // "WHERE": get_where,
-        // "GROUP": get_group,
-        // "HAVING": get_having,
+        "FROM": build_iterator(build_aliased(get_name)),
+        "WHERE": get_expr,
+        "GROUP": get_groups,
+        "HAVING": get_expr,
         // "ORDER": get_order,
         // "LIMIT": get_limit
     };
@@ -57,7 +57,7 @@ function get_expression(buffer) {
     let curr = buffer.pop_next().toUpperCase();
     if (curr === "SELECT") {
         let out = {};
-        out["COLUMNS"] = get_columns(buffer);
+        out["COLUMNS"] = build_iterator(build_aliased(get_expr))(buffer);
         for (let specifier of Object.keys(helpers)) {
             let nextToken = buffer.pop_next();
             if (nextToken === ";") {
@@ -73,12 +73,12 @@ function get_expression(buffer) {
     }
 }
 
-function get_from(buffer) {
-    return build_iterator(build_aliased(get_table_name))(buffer);
+function get_groups(buffer) {
+    assert(buffer.pop_next().toUpperCase() === "BY", "GROUP must be followed by BY");
+    build_iterator(get_name);
 }
 
-function get_table_name(buffer) {
-    // todo
+function get_name(buffer) {
     return buffer.pop_next();
 }
 
@@ -108,35 +108,87 @@ function build_iterator(callback) {
     }
 }
 
-function get_columns(buffer) {
-    return build_iterator(build_aliased(get_col_expr))(buffer);
-}
-
-function get_col_expr(buffer) {
-    let first = buffer.pop_next();
-    if (buffer.get_next() === "(") {
-        // aggregation
-        buffer.pop_next();
-        let expr = get_expr(buffer);
-        assert(buffer.pop_next() === ")", "Aggregates should only take one expression.")
-        return {type: "aggregate", operator: first, expr: expr};
-    } else {
-        return {type: "expr", expr: first};
-    }
-}
-
 function get_expr(buffer) {
-    // todo
-    return buffer.pop_next();
+    let seq = [];
+    const operators = ["OR", "AND", "!=", "=", ">", "<", "+", "-", "/", "*"];
+    while (true) {
+        let val;
+        if (buffer.get_next() === "(") {
+            // grab parened
+            buffer.pop_next();
+            val = get_expr(buffer);
+            assert(buffer.pop_next() === ")", "Parens not closed correctly");
+        } else {
+            // grab single
+            let first = buffer.pop_next();
+            if (buffer.get_next() === ".") {
+                buffer.pop_next();
+                let column = buffer.pop_next();
+                val = {type: "dotaccess", table: first, column: column};
+            } else if (buffer.get_next === "(") {
+                buffer.pop_next();
+                let expr = get_expr(buffer);
+                assert(buffer.pop_next() === ")", "Aggregates should only take one expression.")
+                val = {type: "aggregate", operator: first, expr: expr};
+            } else if (/^\d+$/.test(first)) {
+                val = {type: "numeric", val: first};
+            } else {
+                val = {type: "column", column: first};
+            }
+        }
+        seq.push(val);
+        if (operators.includes(buffer.get_next().toUpperCase())) {
+            let operator = buffer.pop_next().toUpperCase();
+            if (operator === "!") {
+                assert(buffer.pop_next() === "=", "Unknown operator: !");
+            } else if (operator === "<") {
+                if (buffer.get_next() === ">") {
+                    buffer.pop_next();
+                    operator = "!=";
+                } else if (buffer.get_next() === "=") {
+                    buffer.pop_next();
+                    operator = "<=";
+                }
+            } else if (operator === ">") {
+                if (buffer.get_next() === "=") {
+                    buffer.pop_next();
+                    operator = ">=";
+                }
+            }
+            seq.push(operator);
+        } else {
+            break;
+        }
+    }
+
+    function hierarchize(seq) {
+        if (seq.length === 1) {
+            return {type: "atom", val: seq[0]};
+        }
+        for (let operator of operators) {
+            let index = seq.findIndex((x) => (x === operator));
+            if (index === -1) {
+                continue;
+            }
+            return {
+                type: "combination",
+                operator: operator,
+                left: hierarchize(seq.slice(0, index)),
+                right: hierarchize(seq.slice(index + 1, seq.length))
+            };
+        }
+        assert(false, "hierarchize failed");
+    }
+
+    return hierarchize(seq);
 }
 
 /**
- *
  * @param {string} sqlString: the string to tokenize
  * @return {list} A list of tokens as strings
  */
 function tokenize(sqlString) {
-    const SPECIALS = ["=", "(", ")", "\"", "'", ".", ",", "-", "+", "*", "/", ";"];
+    const SPECIALS = ["=", "(", ")", "\"", "'", ".", ",", "-", "+", "*", "/", ";", "<", ">", "!"];
 
     let i = 0;
     let out = [];
