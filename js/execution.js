@@ -1,3 +1,5 @@
+import {parse} from "./parser.js";
+
 const sql = window.SQL;
 
 export function newDatabase() {
@@ -5,6 +7,11 @@ export function newDatabase() {
 }
 
 export function execute(command, db) {
+    try {
+        console.log(parse(command));
+    } catch (err) {
+        console.log(err);
+    }
     let out;
     try {
         out = db.exec(command);
