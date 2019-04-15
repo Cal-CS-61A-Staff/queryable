@@ -2,7 +2,8 @@ import {execute, newDatabase} from "./execution.js";
 
 const introText =
 `Welcome to the 61A SQL interpreter!
-Enter some SQL below:`;
+Enter some SQL below:
+`;
 
 function initializeAce(editorDiv) {
     let editor = ace.edit(editorDiv);
@@ -79,11 +80,13 @@ export function initializeInterpreter(divName) {
         ++i;
         history.push("");
         let displayVal = val.replace(/\n/g, "\n        ");
-        outputDiv.append("\nsqlite> " + displayVal);
+        outputDiv.append("sqlite> " + displayVal + "\n");
 
         let ret = execute(val, db);
-        if (ret.trim() !== "") {
-            outputDiv.append("\n" + ret.trim());
+        for (let val of ret) {
+            console.log(val);
+            outputDiv.append(val);
+            outputDiv.append("\n");
         }
     }
 

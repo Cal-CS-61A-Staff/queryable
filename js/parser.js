@@ -62,7 +62,7 @@ function get_expression(buffer) {
             let nextToken = buffer.pop_next();
             if (nextToken === ";") {
                 return out;
-            } else if (nextToken === specifier) {
+            } else if (nextToken.toUpperCase() === specifier) {
                 out[specifier] = helpers[specifier](buffer);
             }
         }

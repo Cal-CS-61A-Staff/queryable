@@ -1,4 +1,6 @@
 import {parse} from "./parser.js";
+import {visualize} from "./visualize.js";
+import {tableFormat} from "./utils.js";
 
 const sql = window.SQL;
 
@@ -7,41 +9,62 @@ export function newDatabase() {
 }
 
 export function execute(command, db) {
+    let visualization;
     try {
-        console.log(parse(command));
+        let parsed = parse(command);
+        visualization = visualize(parsed, db);
     } catch (err) {
         console.log(err);
     }
-    let out;
+    let dbRet;
     try {
-        out = db.exec(command);
+        dbRet = db.exec(command);
     } catch (err) {
-        return `<span style="color: red">Error: ${err.message}</span>`
+        return [`<span style="color: red">Error: ${err.message}</span>`];
     }
-    return outFormat(out);
-}
 
-function outFormat(raw) {
     let out = [];
-    for (let table of raw) {
-        out.push(tableFormat(table))
-    }
-    return out.join();
-}
 
-function tableFormat(raw) {
-    let out = ["<table class='out-table'><thead><tr>"];
-    for (let col of raw["columns"]) {
-        out.push(`<th> ${col} </th>`);
+    if (visualization) {
+        let visualizeButton = document.createElement("BUTTON");
+        visualizeButton.innerHTML = "Visualize";
+        out.push(visualizeButton);
+
+        let visualizePane = $.parseHTML("<div class='visualize-pane'' </div>");
+        let innerVisualizePane = document.createElement("DIV");
+
+        let prevButton = document.createElement("BUTTON");
+        prevButton.innerHTML = "prev";
+
+        let nextButton = document.createElement("BUTTON");
+        nextButton.innerHTML = "next";
+
+        $(visualizePane).append(prevButton).append(nextButton).append(innerVisualizePane);
+        $(nextButton).hide();
+        $(prevButton).hide();
+
+        out.push(visualizePane);
+
+        let i = 0;
+        $(visualizeButton).click(() => {
+            innerVisualizePane.innerHTML = visualization[0];
+            $(visualizeButton).hide();
+            $(nextButton).show();
+            $(prevButton).show();
+            $(prevButton).click(() => {
+                i = Math.max(i - 1, 0);
+                innerVisualizePane.innerHTML = visualization[i];
+            });
+            $(nextButton).click(() => {
+                i = Math.min(i + 1, visualization.length - 1);
+                innerVisualizePane.innerHTML = visualization[i];
+            });
+        })
     }
-    out.push("</tr></thead>");
-    for (let row of raw["values"]) {
-        out.push("<tr>");
-        for (let val of row) {
-            out.push(`<td> ${val} </td>`);
-        }
-        out.push("</tr>");
+
+    for (let table of dbRet) {
+        out.push(tableFormat(table));
     }
-    out.push("</table>");
-    return out.join("");
+
+    return out;
 }

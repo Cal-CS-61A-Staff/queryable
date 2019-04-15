@@ -1,3 +1,8 @@
+.visualize-pane {
+    border: #ee7813;
+    border-style: dashed;
+}
+
 .content {
     display: grid;
     grid-template-rows: 25px;
