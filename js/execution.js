@@ -5,7 +5,13 @@ import {tableFormat} from "./utils.js";
 const sql = window.SQL;
 
 export function newDatabase() {
-    return new sql.Database();
+    let db = new sql.Database();
+    try {
+        db.exec("CREATE TABLE testxyz;");
+    } catch (err) {
+        // pass
+    }
+    return db;
 }
 
 export function execute(command, db) {

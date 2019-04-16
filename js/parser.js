@@ -110,7 +110,7 @@ function build_iterator(callback) {
 
 function get_expr(buffer) {
     let seq = [];
-    const operators = ["OR", "AND", "!=", "=", ">", "<", "+", "-", "/", "*"];
+    const operators = ["OR", "AND", "!", "!=", "=", ">", ">=", "<", "<=", "+", "-", "*", "/"];
     while (true) {
         let val;
         if (buffer.get_next() === "(") {
@@ -121,7 +121,10 @@ function get_expr(buffer) {
         } else {
             // grab single
             let first = buffer.pop_next();
-            if (buffer.get_next() === ".") {
+            if (first === "\"" || first === "\"") {
+                val = {type: "string", val: buffer.pop_next()};
+                assert(buffer.pop_next() === first, "Quotation marks must be matched.")
+            } else if (buffer.get_next() === ".") {
                 buffer.pop_next();
                 let column = buffer.pop_next();
                 val = {type: "dotaccess", table: first, column: column};
@@ -141,6 +144,7 @@ function get_expr(buffer) {
             let operator = buffer.pop_next().toUpperCase();
             if (operator === "!") {
                 assert(buffer.pop_next() === "=", "Unknown operator: !");
+                operator = "!=";
             } else if (operator === "<") {
                 if (buffer.get_next() === ">") {
                     buffer.pop_next();
@@ -163,7 +167,11 @@ function get_expr(buffer) {
 
     function hierarchize(seq) {
         if (seq.length === 1) {
-            return {type: "atom", val: seq[0]};
+            if (seq[0]["type"] !== "combination") {
+                return {type: "atom", val: seq[0]};
+            } else {
+                return seq[0];
+            }
         }
         for (let operator of operators) {
             let index = seq.findIndex((x) => (x === operator));
@@ -207,10 +215,24 @@ function tokenize(sqlString) {
                     return curr;
                 } else {
                     curr = nextChar;
+                    if (nextChar === "\"") {
+                        out.push(curr);
+                        out.push(getString(curr));
+                        ++i;
+                    }
                     return curr;
                 }
             }
             curr += nextChar;
+        }
+        return curr;
+    }
+
+    function getString(close) {
+        let curr = "";
+        while (i !== sqlString.length && sqlString[i] !== close) {
+            curr += sqlString[i];
+            ++i;
         }
         return curr;
     }

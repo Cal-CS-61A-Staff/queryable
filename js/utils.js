@@ -4,20 +4,17 @@ export function assert(condition, message) {
     }
 }
 
-export function tableFormat(raw, group_size, num_groups) {
-    if (!group_size) {
-        group_size = raw["values"].length;
-        num_groups = 1;
+export function tableFormat(raw, colorCallback) {
+    if (!colorCallback) {
+        colorCallback = (i) => "white";
     }
-    let colors = generateHslaColors(20, 80, 1.0, num_groups);
     let out = ["<table class='out-table'><thead><tr>"];
     for (let col of raw["columns"]) {
         out.push(`<th> ${col} </th>`);
     }
     out.push("</tr></thead>");
     for (let i = 0; i !== raw["values"].length; ++i) {
-        let color = colors[Math.floor(i / group_size) % num_groups];
-        out.push(`<tr style="background-color: ${color};">`);
+        out.push(`<tr style="background-color: ${colorCallback(i)};">`);
         for (let val of raw["values"][i]) {
             out.push(`<td> ${val} </td>`);
         }
@@ -40,7 +37,7 @@ export function placeHorizontally(tables) {
 
 
 // @source https://mika-s.github.io/javascript/colors/hsl/2017/12/05/generating-random-colors-in-javascript.html
-function generateHslaColors (saturation, lightness, alpha, amount) {
+export function generateHslaColors (saturation, lightness, alpha, amount) {
     let colors = [];
     let huedelta = Math.trunc(360 / amount);
 

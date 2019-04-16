@@ -1,7 +1,8 @@
 import {initializeInterpreter} from "./interpreter.js";
 
 function init() {
-    initializeInterpreter("output")
+    initializeInterpreter("output");
+    $("#loadingDiv").hide();
 }
 
 $(init);
