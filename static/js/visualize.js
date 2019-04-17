@@ -160,7 +160,9 @@ function group(table, groupColumns, selectClause, out) {
     out.push(tableFormat(table, colorGrouper));
 
     let groupedTables = [];
-    for (let i = 0; i !== )
+    for (let i = 0; i !== 5; ++i) {
+
+    }
 }
 
 function evaluateName(expr, columnNames, rowValues, selectClause) {
