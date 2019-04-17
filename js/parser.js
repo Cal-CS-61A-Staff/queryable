@@ -75,7 +75,7 @@ function get_expression(buffer) {
 
 function get_groups(buffer) {
     assert(buffer.pop_next().toUpperCase() === "BY", "GROUP must be followed by BY");
-    build_iterator(get_name);
+    build_iterator(get_expr);
 }
 
 function get_name(buffer) {

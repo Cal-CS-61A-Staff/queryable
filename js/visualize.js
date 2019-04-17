@@ -16,6 +16,14 @@ export function visualize(parsedSQL, db) {
     if (parsedSQL["WHERE"]) {
         workingTable = filter(workingTable, parsedSQL["WHERE"], parsedSQL["COLUMNS"], out);
     }
+    let groups;
+    if (parsedSQL["GROUP"]) {
+        groups = group(workingTable, parsedSQL["GROUP"], parsedSQL["COLUMNS"]);
+    } else {
+        groups = [workingTable];
+    }
+
+
     return out;
 }
 
@@ -131,6 +139,48 @@ function filter(table, whereClause, selectClause, out) {
 
 }
 
+function group(table, groupColumns, selectClause, out) {
+    let groups = new Map();
+    let groupLookup = [];
+    const SPACING = "-------";
+    console.log("grouping");
+    for (let i = 0; i !== table["values"].length; ++i) {
+        let groupKey = "";
+        for (let column of groupColumns) {
+            groupKey += evaluate(column, table["columns"], table["values"][i], selectClause);
+            groupKey += SPACING;
+        }
+        if (!groups.has(groupKey)) {
+            groups.set(groupKey, groups.size);
+        }
+        groupLookup.push(groups.get(groupKey));
+    }
+    let colorGrouper = (i) => generateHslaColors(20, 80, 1.0, groups.size)[groupLookup[i]];
+    out.push(tableFormat(table, colorGrouper()));
+}
+
+function evaluateName(expr, columnNames, rowValues, selectClause) {
+    let targetName;
+    if (expr["type"] === "column") {
+        targetName = expr["column"];
+    } else if (expr["type"] === "dotaccess") {
+        targetName = expr["table"] + "." + expr["column"];
+    } else {
+        assert(false, "Unknown atomic expr type: " + expr["type"]);
+    }
+    for (let i = 0; i !== columnNames.length; ++i) {
+        if (columnNames[i] === targetName || columnNames[i].split(".")[1] === targetName) {
+            return rowValues[i];
+        }
+    }
+    for (let clause of selectClause) {
+        if (clause["alias"] && clause["alias"][0] === targetName) {
+            return evaluate(clause["expr"], columnNames, rowValues, selectClause, out)
+        }
+    }
+    assert(false, "Unable to evaluate column name: " + targetName);
+}
+
 function evaluate(whereClause, columnNames, rowValues, selectClause) {
     if (whereClause["type"] === "atom") {
         let expr = whereClause["val"];
@@ -142,25 +192,7 @@ function evaluate(whereClause, columnNames, rowValues, selectClause) {
         } else if (expr["type"] === "string") {
             return expr["val"];
         } else {
-            let targetName;
-            if (expr["type"] === "column") {
-                targetName = expr["column"];
-            } else if (expr["type"] === "dotaccess") {
-                targetName = expr["table"] + "." + expr["column"];
-            } else {
-                assert(false, "Unknown atomic expr type: " + expr["type"]);
-            }
-            for (let i = 0; i !== columnNames.length; ++i) {
-                if (columnNames[i] === targetName || columnNames[i].split(".")[1] === targetName) {
-                    return rowValues[i];
-                }
-            }
-            for (let clause of selectClause) {
-                if (clause["alias"] && clause["alias"][0] === targetName) {
-                    return evaluate(clause["expr"], columnNames, rowValues, selectClause)
-                }
-            }
-            assert(false, "Unable to evaluate column name: " + targetName);
+            return evaluateName(expr, columnNames, rowValues, selectClause);
         }
     } else if (whereClause["type"] === "combination") {
         let left = evaluate(whereClause["left"], columnNames, rowValues, selectClause);
