@@ -59,10 +59,11 @@ function get_expression(buffer) {
         let out = {};
         out["COLUMNS"] = build_iterator(build_aliased(get_expr))(buffer);
         for (let specifier of Object.keys(helpers)) {
-            let nextToken = buffer.pop_next();
+            let nextToken = buffer.get_next();
             if (nextToken === ";") {
                 return out;
             } else if (nextToken.toUpperCase() === specifier) {
+                buffer.pop_next();
                 out[specifier] = helpers[specifier](buffer);
             }
         }
@@ -75,7 +76,7 @@ function get_expression(buffer) {
 
 function get_groups(buffer) {
     assert(buffer.pop_next().toUpperCase() === "BY", "GROUP must be followed by BY");
-    build_iterator(get_expr);
+    return build_iterator(get_expr)(buffer);
 }
 
 function get_name(buffer) {

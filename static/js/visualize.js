@@ -16,9 +16,10 @@ export function visualize(parsedSQL, db) {
     if (parsedSQL["WHERE"]) {
         workingTable = filter(workingTable, parsedSQL["WHERE"], parsedSQL["COLUMNS"], out);
     }
+    console.log(parsedSQL);
     let groups;
     if (parsedSQL["GROUP"]) {
-        groups = group(workingTable, parsedSQL["GROUP"], parsedSQL["COLUMNS"]);
+        groups = group(workingTable, parsedSQL["GROUP"], parsedSQL["COLUMNS"], out);
     } else {
         groups = [workingTable];
     }
@@ -156,7 +157,10 @@ function group(table, groupColumns, selectClause, out) {
         groupLookup.push(groups.get(groupKey));
     }
     let colorGrouper = (i) => generateHslaColors(20, 80, 1.0, groups.size)[groupLookup[i]];
-    out.push(tableFormat(table, colorGrouper()));
+    out.push(tableFormat(table, colorGrouper));
+
+    let groupedTables = [];
+    for (let i = 0; i !== )
 }
 
 function evaluateName(expr, columnNames, rowValues, selectClause) {
