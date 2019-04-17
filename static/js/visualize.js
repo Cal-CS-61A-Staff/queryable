@@ -14,7 +14,7 @@ export function visualize(parsedSQL, db) {
     let out = [];
     let workingTable = join(parsedSQL["FROM"], tables, out);
     if (parsedSQL["WHERE"]) {
-        workingTable = filter(workingTable, parsedSQL["WHERE"], parsedSQL["COLUMNS"], out);
+        workingTable = where(workingTable, parsedSQL["WHERE"], parsedSQL["COLUMNS"], out);
     }
     console.log(parsedSQL);
     let groups;
@@ -24,6 +24,9 @@ export function visualize(parsedSQL, db) {
         groups = [workingTable];
     }
 
+    if (parsedSQL["HAVING"]) {
+        groups = having(groups, parsedSQL["HAVING"], parsedSQL["COLUMNS"], out);
+    }
 
     return out;
 }
@@ -51,9 +54,17 @@ function join(tableNames, tableData, out) {
         let tableToJoin = {columns: cols, values: tableData.get(realName)["values"]};
         tables.push(tableToJoin);
     }
+
+    let colorCallback;
+    if (tableNames.length > 1) {
+        colorCallback = alternatingColorCallback(1, table["values"].length)
+    } else {
+        colorCallback = (i) => "white";
+    }
+
     let tableDivs = [];
     for (let table of tables) {
-        tableDivs.push(tableFormat(table, alternatingColorCallback(1, table["values"].length)));
+        tableDivs.push(tableFormat(table, colorCallback));
     }
     out.push(placeHorizontally(tableDivs)); // just getting the tables
 
@@ -117,7 +128,7 @@ function copyRows(rows, duplicates, repeats) {
     return out;
 }
 
-function filter(table, whereClause, selectClause, out) {
+function where(table, whereClause, selectClause, out) {
     let selectedRows = [];
     for (let i = 0; i !== table["values"].length; ++i) {
         if (evaluate(whereClause, table["columns"], table["values"][i], selectClause)) {
@@ -137,7 +148,6 @@ function filter(table, whereClause, selectClause, out) {
     let filteredTable = {columns: table["columns"], values: rows};
     out.push(tableFormat(filteredTable));
     return filteredTable;
-
 }
 
 function group(table, groupColumns, selectClause, out) {
@@ -156,13 +166,29 @@ function group(table, groupColumns, selectClause, out) {
         }
         groupLookup.push(groups.get(groupKey));
     }
-    let colorGrouper = (i) => generateHslaColors(20, 80, 1.0, groups.size)[groupLookup[i]];
+
+    let colors = generateHslaColors(20, 80, 1.0, groups.size);
+
+    let colorGrouper = (i) => colors[groupLookup[i]];
     out.push(tableFormat(table, colorGrouper));
 
     let groupedTables = [];
-    for (let i = 0; i !== 5; ++i) {
-
+    for (let i = 0; i !== groups.size; ++i) {
+        groupedTables.push({columns: table["columns"], values: []});
     }
+
+    for (let i = 0; i !== groupLookup.length; ++i) {
+        groupedTables[groupLookup[i]]["values"].push(table["values"][i]);
+    }
+
+    let groupedTableDivs = [];
+    for (let i = 0; i !== groups.size; ++i) {
+        groupedTableDivs.push(tableFormat(groupedTables[i], (j) => colors[i]))
+    }
+
+    out.push(placeHorizontally(groupedTableDivs));
+
+    return groupedTables;
 }
 
 function evaluateName(expr, columnNames, rowValues, selectClause) {
