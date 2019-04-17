@@ -191,6 +191,35 @@ function group(table, groupColumns, selectClause, out) {
     return groupedTables;
 }
 
+function having(groups, havingClause, selectClause, out) {
+    let selectedGroups = Set();
+    for (let i = 0; i !== groups.length; ++i) {
+        if (evaluate(havingClause, table["columns"], groups[i]["values"][groups[i]["values"].length - 1],
+                     selectClause, groups[i]["values"])) {
+            selectedGroups.put(i);
+        }
+    }
+    let highlightedGroupDivs = [];
+    for (let i = 0; i !== groups.length; ++i) {
+        let colorCallback;
+        if (selectedGroups.has(i)) {
+            colorCallback = (i) => "lightgreen";
+        } else {
+            colorCallback = (i) => "white";
+        }
+        highlightedGroupDivs.push(tableFormat(groups[i], colorCallback));
+    }
+
+    out.push(placeHorizontally(highlightedGroupDivs));
+
+    let selectedGroupTables = [];
+    for (let group of selectedGroups) {
+        selectedGroupTables.push(groups[group]);
+    }
+
+    return selectedGroupTables;
+}
+
 function evaluateName(expr, columnNames, rowValues, selectClause) {
     let targetName;
     if (expr["type"] === "column") {
@@ -213,12 +242,26 @@ function evaluateName(expr, columnNames, rowValues, selectClause) {
     assert(false, "Unable to evaluate column name: " + targetName);
 }
 
-function evaluate(whereClause, columnNames, rowValues, selectClause) {
+function evaluate(whereClause, columnNames, rowValues, selectClause, allRows) {
     if (whereClause["type"] === "atom") {
         let expr = whereClause["val"];
         if (expr["type"] === "aggregate") {
-            // todo
-            assert(false);
+            assert(allRows !== undefined, "aggregates can't be used in the WHERE clause");
+            let func = expr["operator"];
+            let expr = expr["expr"];
+            let vals = [];
+            for (let row of allRows) {
+                vals.push(evaluate(expr, columnNames, row, selectClause, allRows));
+            }
+            if (func === "max") {
+                return Math.max(vals);
+            } else if (func === "min") {
+                return Math.min(vals);
+            } else if (func === "count") {
+                return vals.length;
+            } else if (func === "sum") {
+                return vals.reduce((a, b) => (a + b));
+            }
         } else if (expr["type"] === "numeric") {
             return parseFloat(expr["val"]);
         } else if (expr["type"] === "string") {
