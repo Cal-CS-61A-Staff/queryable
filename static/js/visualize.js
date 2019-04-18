@@ -20,12 +20,11 @@ export function visualize(parsedSQL, db) {
     let groups;
     if (parsedSQL["GROUP"]) {
         groups = group(workingTable, parsedSQL["GROUP"], parsedSQL["COLUMNS"], out);
+        if (parsedSQL["HAVING"]) {
+            groups = having(groups, parsedSQL["HAVING"], parsedSQL["COLUMNS"], out);
+        }
     } else {
         groups = [workingTable];
-    }
-
-    if (parsedSQL["HAVING"]) {
-        groups = having(groups, parsedSQL["HAVING"], parsedSQL["COLUMNS"], out);
     }
 
     return out;
@@ -55,15 +54,19 @@ function join(tableNames, tableData, out) {
         tables.push(tableToJoin);
     }
 
-    let colorCallback;
-    if (tableNames.length > 1) {
-        colorCallback = alternatingColorCallback(1, table["values"].length)
-    } else {
-        colorCallback = (i) => "white";
+    let defaultColorCallback;
+    if (tableNames.length === 1) {
+        defaultColorCallback = (i) => "white";
     }
 
     let tableDivs = [];
     for (let table of tables) {
+        let colorCallback;
+        if (defaultColorCallback) {
+            colorCallback = defaultColorCallback;
+        } else {
+            colorCallback = alternatingColorCallback(1, tables[0]["values"].length)
+        }
         tableDivs.push(tableFormat(table, colorCallback));
     }
     out.push(placeHorizontally(tableDivs)); // just getting the tables
@@ -192,11 +195,11 @@ function group(table, groupColumns, selectClause, out) {
 }
 
 function having(groups, havingClause, selectClause, out) {
-    let selectedGroups = Set();
+    let selectedGroups = new Set();
     for (let i = 0; i !== groups.length; ++i) {
-        if (evaluate(havingClause, table["columns"], groups[i]["values"][groups[i]["values"].length - 1],
+        if (evaluate(havingClause, groups[i]["columns"], groups[i]["values"][groups[i]["values"].length - 1],
                      selectClause, groups[i]["values"])) {
-            selectedGroups.put(i);
+            selectedGroups.add(i);
         }
     }
     let highlightedGroupDivs = [];
@@ -247,11 +250,16 @@ function evaluate(whereClause, columnNames, rowValues, selectClause, allRows) {
         let expr = whereClause["val"];
         if (expr["type"] === "aggregate") {
             assert(allRows !== undefined, "aggregates can't be used in the WHERE clause");
-            let func = expr["operator"];
-            let expr = expr["expr"];
+            let func = expr["operator"].toLowerCase();
+            let argument = expr["expr"];
             let vals = [];
             for (let row of allRows) {
-                vals.push(evaluate(expr, columnNames, row, selectClause, allRows));
+                console.log(argument);
+                if (argument["type"] === "atom" && expr["val"]["column"] === "*") {
+                    vals.push(true);
+                } else {
+                    vals.push(evaluate(argument, columnNames, row, selectClause, allRows));
+                }
             }
             if (func === "max") {
                 return Math.max(vals);
@@ -261,6 +269,8 @@ function evaluate(whereClause, columnNames, rowValues, selectClause, allRows) {
                 return vals.length;
             } else if (func === "sum") {
                 return vals.reduce((a, b) => (a + b));
+            } else {
+                assert(false, "unknown aggregate function");
             }
         } else if (expr["type"] === "numeric") {
             return parseFloat(expr["val"]);
@@ -270,8 +280,8 @@ function evaluate(whereClause, columnNames, rowValues, selectClause, allRows) {
             return evaluateName(expr, columnNames, rowValues, selectClause);
         }
     } else if (whereClause["type"] === "combination") {
-        let left = evaluate(whereClause["left"], columnNames, rowValues, selectClause);
-        let right = evaluate(whereClause["right"], columnNames, rowValues, selectClause);
+        let left = evaluate(whereClause["left"], columnNames, rowValues, selectClause, allRows);
+        let right = evaluate(whereClause["right"], columnNames, rowValues, selectClause, allRows);
         switch (whereClause["operator"]) {
             case "OR":
                 return left || right;

@@ -32,6 +32,8 @@ export function execute(command, db) {
     let out = [];
 
     if (visualization) {
+        visualization.push(tableFormat(dbRet[0]));
+
         let visualizeButton = document.createElement("BUTTON");
         visualizeButton.innerHTML = "Visualize";
         out.push(visualizeButton);
