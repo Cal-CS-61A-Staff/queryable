@@ -4,7 +4,9 @@ import {tableFormat} from "./utils.js";
 
 const sql = window.SQL;
 
-export function newDatabase() {
+let db = newDatabase();
+
+function newDatabase() {
     let db = new sql.Database();
     try {
         db.exec("CREATE TABLE testxyz;");
@@ -14,7 +16,44 @@ export function newDatabase() {
     return db;
 }
 
-export function execute(command, db) {
+export async function execute(command) {
+    if (command.startsWith(".")) {
+        // dotcommand
+        if (command === ".quit" || command === ".exit") {
+            window.close(); // sometimes works, depending on browser
+            location.reload(); // otherwise this is the best we've got
+        } else if (command === ".help") {
+            return [
+                ".exit                  Exit this program\n" +
+                ".help                  Show this message\n" +
+                ".quit                  Exit this program\n" +
+                ".open                  Close existing database and reopen file to be selected\n" +
+                ".read                  Execute SQL in file to be selected\n" +
+                ".tables                List names of tables\n" +
+                ".schema                Show all CREATE statements matching PATTERN"
+            ];
+        } else if (command === ".open") {
+            db = newDatabase();
+            return await execute(".read");
+        } else if (command === ".read") {
+            return new Promise((resolve, reject) => {
+                $('<input type="file" />').click().on("change", (e) => {
+                    let file = e.target.files[0];
+                    let reader = new FileReader();
+                    reader.readAsText(file);
+                    reader.onload = () => {
+                        resolve([reader.result, execute(reader.result, db)]);
+                    };
+                });
+            });
+        } else if (command === ".tables") {
+            let dbRet = db.exec("SELECT name as Tables FROM sqlite_master WHERE type = 'table';");
+            return [tableFormat(dbRet[0])];
+        } else if (command === ".schema") {
+            let dbRet = db.exec("SELECT (sql || ';') as `CREATE Statements` FROM sqlite_master WHERE type = 'table';");
+            return [tableFormat(dbRet[0])];
+        }
+    }
     let visualization;
     try {
         let parsed = parse(command);

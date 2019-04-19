@@ -1,4 +1,4 @@
-import {execute, newDatabase} from "./execution.js";
+import {execute} from "./execution.js";
 
 const introText =
 `Welcome to the 61A SQL interpreter!
@@ -56,17 +56,15 @@ export function initializeInterpreter(divName) {
 
     bindKeyboardShortcuts();
 
-    let db = newDatabase();
-
     editor.getSession().on("change", function () {
         let val = editor.getValue();
         val = val.replace(/\r/g, "");
         if (val.slice(-1) === "\n") {
-            run(val, db);
+            run(val);
         }
     });
 
-    function run(val, db) {
+    async function run(val) {
         val = val.trim();
         editor.setReadOnly(true);
         editor.setReadOnly(false);
@@ -82,7 +80,8 @@ export function initializeInterpreter(divName) {
         let displayVal = val.replace(/\n/g, "\n        ");
         outputDiv.append("sqlite> " + displayVal + "\n");
 
-        let ret = execute(val, db);
+        let ret = await execute(val);
+
         for (let val of ret) {
             console.log(val);
             outputDiv.append(val);
