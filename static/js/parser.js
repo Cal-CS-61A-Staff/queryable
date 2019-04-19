@@ -35,6 +35,9 @@ class TokenBuffer {
 
 export function parse(sqlString) {
     let tokenized = tokenize(sqlString);
+    if (tokenized[tokenized.length - 1] !== ";") {
+        tokenized.push(";");
+    }
     return get_expression(new TokenBuffer(tokenized));
 }
 
@@ -48,8 +51,8 @@ function get_expression(buffer) {
         "WHERE": get_expr,
         "GROUP": get_groups,
         "HAVING": get_expr,
-        // "ORDER": get_order,
-        // "LIMIT": get_limit
+        "ORDER": get_order,
+        "LIMIT": get_limit
     };
     if (buffer.empty) {
         throw "No tokens found";
@@ -84,6 +87,14 @@ function get_name(buffer) {
     return buffer.pop_next();
 }
 
+function get_order(buffer) {
+    assert(buffer.pop_next().toUpperCase() === "BY", "GROUP must be followed by BY");
+    return build_iterator(get_expr)(buffer);
+}
+
+function get_limit(buffer) {
+    return get_expr();
+}
 
 function build_aliased(callback) {
     return (buffer) => {
