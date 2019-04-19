@@ -27,11 +27,11 @@ function initializeAce(editorDiv) {
 
     $(document).click(function() {
         setTimeout(() => {
-        if (window.getSelection().rangeCount === 0 ||
-            window.getSelection().getRangeAt(0).collapsed) {
-            editor.focus();
-        }
-    }, 0);
+            if (window.getSelection().rangeCount === 0 ||
+                window.getSelection().getRangeAt(0).collapsed) {
+                editor.focus();
+            }
+        }, 0);
     });
 
     return editor;
