@@ -19,10 +19,14 @@ function newDatabase() {
 
 export async function execute(command) {
     if (command.startsWith(".")) {
+        if (command.split(" ").length > 1) {
+            return [command.split(" ")[0] + " takes no arguments, on the web interpreter."];
+        }
         // dotcommand
         if (command === ".quit" || command === ".exit") {
             window.close(); // sometimes works, depending on browser
             location.reload(); // otherwise this is the best we've got
+            return [];
         } else if (command === ".help") {
             return [
                 ".exit                  Exit this program\n" +
@@ -31,7 +35,7 @@ export async function execute(command) {
                 ".open                  Close existing database and reopen file to be selected\n" +
                 ".read                  Execute SQL in file to be selected\n" +
                 ".tables                List names of tables\n" +
-                ".schema                Show all CREATE statements matching PATTERN"
+                ".schema                Show all CREATE statements"
             ];
         } else if (command === ".open") {
             db = newDatabase();
@@ -53,6 +57,8 @@ export async function execute(command) {
         } else if (command === ".schema") {
             let dbRet = db.exec("SELECT (sql || ';') as `CREATE Statements` FROM sqlite_master WHERE type = 'table';");
             return [tableFormat(dbRet[0])];
+        } else {
+            return ["The command " + command.split(" ")[0] + " does not exist."];
         }
     }
     let visualization;
