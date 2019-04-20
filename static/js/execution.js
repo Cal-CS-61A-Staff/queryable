@@ -25,6 +25,7 @@ export async function execute(command) {
         if (command === ".quit" || command === ".exit") {
             window.close(); // sometimes works, depending on browser
             location.reload(); // otherwise this is the best we've got
+            return [];
         } else if (command === ".help") {
             return [
                 ".exit                  Exit this program\n" +
