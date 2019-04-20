@@ -5,7 +5,7 @@ const introText =
 <a href="https://github.com/Cal-CS-61A-Staff/queryable">on GitHub</a>
 --------------------------------------------------------------------------------
 Welcome to the 61A SQL interpreter!
-Type <code>.help</code> for instructions, or <code>.read</code> to load a file.
+Type <code>.help</code> for instructions, or <code>.read</code> to load a file from your computer.
 The tables used in homework, labs, and lecture are already available to use.
 `;
 
