@@ -1,6 +1,7 @@
 import {parse} from "./parser.js";
 import {visualize} from "./visualize.js";
 import {tableFormat} from "./utils.js";
+import {preexisting} from "./default_tables.js";
 
 const sql = window.SQL;
 
@@ -9,7 +10,7 @@ let db = newDatabase();
 function newDatabase() {
     let db = new sql.Database();
     try {
-        db.exec("CREATE TABLE testxyz;");
+        db.exec(preexisting);
     } catch (err) {
         // pass
     }
