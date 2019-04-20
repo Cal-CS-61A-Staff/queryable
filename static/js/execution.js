@@ -18,11 +18,14 @@ function newDatabase() {
 
 export async function execute(command) {
     if (command.startsWith(".")) {
+        if (command.split(" ").length > 1) {
+            return [command.split(" ")[0] + " takes no arguments, on the web interpreter."];
+        }
         // dotcommand
-        if (command.startsWith(".quit") || command.startsWith(".exit")) {
+        if (command === ".quit" || command === ".exit") {
             window.close(); // sometimes works, depending on browser
             location.reload(); // otherwise this is the best we've got
-        } else if (command.startsWith(".help")) {
+        } else if (command === ".help") {
             return [
                 ".exit                  Exit this program\n" +
                 ".help                  Show this message\n" +
@@ -32,10 +35,10 @@ export async function execute(command) {
                 ".tables                List names of tables\n" +
                 ".schema                Show all CREATE statements matching PATTERN"
             ];
-        } else if (command.startsWith(".open")) {
+        } else if (command === ".open") {
             db = newDatabase();
             return await execute(".read");
-        } else if (command.startsWith(".read")) {
+        } else if (command === ".read") {
             return new Promise((resolve, reject) => {
                 $('<input type="file" />').click().on("change", (e) => {
                     let file = e.target.files[0];
@@ -46,12 +49,14 @@ export async function execute(command) {
                     };
                 });
             });
-        } else if (command.startsWith(".tables")) {
+        } else if (command === ".tables") {
             let dbRet = db.exec("SELECT name as Tables FROM sqlite_master WHERE type = 'table';");
             return [tableFormat(dbRet[0])];
-        } else if (command.startsWith(".schema")) {
+        } else if (command === ".schema") {
             let dbRet = db.exec("SELECT (sql || ';') as `CREATE Statements` FROM sqlite_master WHERE type = 'table';");
             return [tableFormat(dbRet[0])];
+        } else {
+            return ["The command " + command.split(" ")[0] + " does not exist."];
         }
     }
     let visualization;
