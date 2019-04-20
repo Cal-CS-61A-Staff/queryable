@@ -255,7 +255,7 @@ function evaluate(whereClause, columnNames, rowValues, selectClause, allRows) {
             let vals = [];
             for (let row of allRows) {
                 console.log(argument);
-                if (argument["type"] === "atom" && expr["val"]["column"] === "*") {
+                if (argument["type"] === "atom" && argument["val"]["column"] === "*") {
                     vals.push(true);
                 } else {
                     vals.push(evaluate(argument, columnNames, row, selectClause, allRows));
