@@ -33,7 +33,7 @@ export async function execute(command) {
                 ".open                  Close existing database and reopen file to be selected\n" +
                 ".read                  Execute SQL in file to be selected\n" +
                 ".tables                List names of tables\n" +
-                ".schema                Show all CREATE statements matching PATTERN"
+                ".schema                Show all CREATE statements"
             ];
         } else if (command === ".open") {
             db = newDatabase();
