@@ -119,7 +119,7 @@ export function initializeInterpreter(divName) {
         editor.commands.addCommand({
             name: "ctrl-enter",
             bindKey: { win: "Ctrl+Enter", mac: "Cmd+Enter"},
-            exec: function(editor, ...rest) {run(editor.getValue().replace(/\r/g, ""));}
+            exec: function(editor, ...rest) {run(editor.getValue().replace(/\r/g, ""), db);}
         });
 
         let old_down_arrow = editor.commands.commandKeyBinding.down;
