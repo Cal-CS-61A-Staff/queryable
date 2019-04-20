@@ -65,7 +65,7 @@ function join(tableNames, tableData, out) {
         if (defaultColorCallback) {
             colorCallback = defaultColorCallback;
         } else {
-            colorCallback = alternatingColorCallback(1, tables[0]["values"].length)
+            colorCallback = alternatingColorCallback(1, table["values"].length)
         }
         tableDivs.push(tableFormat(table, colorCallback));
     }
