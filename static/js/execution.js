@@ -61,18 +61,19 @@ export async function execute(command) {
             return ["The command " + command.split(" ")[0] + " does not exist."];
         }
     }
-    let visualization;
-    try {
-        let parsed = parse(command);
-        visualization = visualize(parsed, db);
-    } catch (err) {
-        console.log(err);
-    }
+
     let dbRet;
     try {
         dbRet = db.exec(command);
     } catch (err) {
         return [`<span style="color: red">Error: ${err.message}</span>`];
+    }
+
+    let visualization;
+    try {
+        visualization = visualize(command, db);
+    } catch (err) {
+        console.log(err);
     }
 
     let out = [];
@@ -82,8 +83,6 @@ export async function execute(command) {
     }
 
     if (visualization) {
-        visualization.push(tableFormat(dbRet[0]));
-
         let visualizeButton = document.createElement("BUTTON");
         $(visualizeButton).addClass("btn btn-info btn-sm");
         visualizeButton.innerHTML = "Visualize";

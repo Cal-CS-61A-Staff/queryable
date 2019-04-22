@@ -67,13 +67,18 @@ function get_expression(buffer) {
                 return out;
             } else if (nextToken.toUpperCase() === specifier) {
                 buffer.pop_next();
-                console.log("Searching for " + specifier);
                 out[specifier] = helpers[specifier](buffer);
             }
         }
         assert(buffer.pop_next() === ";", "SELECT statement not terminated.");
         return out;
-    } else {
+    } else if (curr === "CREATE") {
+        assert(buffer.pop_next().toUpperCase() === "TABLE");
+        let tableName = buffer.pop_next();
+        assert(buffer.pop_next().toUpperCase() === "AS");
+        return {TABLENAME: tableName, SELECT: get_expression(buffer)};
+    }
+    else {
         throw "Can only handle SELECT statements right now.";
     }
 }
@@ -134,8 +139,6 @@ function get_expr(buffer) {
         } else {
             // grab single
             let first = buffer.pop_next();
-            console.log(first);
-            console.log(buffer.get_next());
             if (first === "\"" || first === "\"") {
                 val = {type: "string", val: buffer.pop_next()};
                 assert(buffer.pop_next() === first, "Quotation marks must be matched.")
@@ -148,7 +151,6 @@ function get_expr(buffer) {
                 let expr = get_expr(buffer);
                 assert(buffer.pop_next() === ")", "Aggregates should only take one expression.")
                 val = {type: "aggregate", operator: first, expr: expr};
-                console.log(val);
             } else if (/^\d+$/.test(first)) {
                 val = {type: "numeric", val: first};
             } else {
