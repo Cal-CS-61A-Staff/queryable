@@ -32,14 +32,22 @@ export async function execute(command) {
                 ".exit                  Exit this program\n" +
                 ".help                  Show this message\n" +
                 ".quit                  Exit this program\n" +
-                ".open                  Close existing database and reopen file to be selected\n" +
+                ".open                  Restart using database in specified file\n" +
                 ".read                  Execute SQL in file to be selected\n" +
                 ".tables                List names of tables\n" +
                 ".schema                Show all CREATE statements"
             ];
         } else if (command === ".open") {
-            db = newDatabase();
-            return await execute(".read");
+            return new Promise((resolve, reject) => {
+                $('<input type="file" />').click().on("change", (e) => {
+                    let file = e.target.files[0];
+                    let reader = new FileReader();
+                    reader.readAsText(file);
+                    reader.onload = () => {
+                        db = sql.Database(reader.result);
+                    };
+                });
+            });
         } else if (command === ".read") {
             return new Promise((resolve, reject) => {
                 $('<input type="file" />').click().on("change", (e) => {
@@ -47,6 +55,7 @@ export async function execute(command) {
                     let reader = new FileReader();
                     reader.readAsText(file);
                     reader.onload = () => {
+                        console.log(reader.result);
                         resolve([reader.result, execute(reader.result, db)]);
                     };
                 });
