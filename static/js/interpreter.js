@@ -122,6 +122,9 @@ export function initializeInterpreter(divName) {
             exec: function(editor, ...rest) {run(editor.getValue().replace(/\r/g, ""));}
         });
 
+        editor.commands.removeCommand('find');
+        editor.commands.removeCommand('gotoline');
+
         let old_down_arrow = editor.commands.commandKeyBinding.down;
         editor.commands.addCommand({
             name: "downarrow",
