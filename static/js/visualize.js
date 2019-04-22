@@ -4,8 +4,24 @@
  * @param db - Handle for active sql.js database
  */
 import {assert, placeHorizontally, tableFormat, generateHslaColors} from "./utils.js";
+import {parse} from "./parser.js";
 
-export function visualize(parsedSQL, db) {
+export function visualize(sql, db) {
+    let parsed = parse(sql);
+
+    if (parsed["TABLENAME"]) {
+        let out = select(parsed["SELECT"], db);
+        out.push(tableFormat(db.exec(`SELECT * FROM ${parsed["TABLENAME"]};`)[0]));
+        return out;
+    } else {
+        let out = select(parsed, db);
+        out.push(tableFormat(db.exec(sql)[0]));
+        return out;
+    }
+
+}
+
+function select(parsedSQL, db) {
     let tables = new Map();
     for (let table of parsedSQL["FROM"]) {
         let tableName = table["expr"];
@@ -16,7 +32,6 @@ export function visualize(parsedSQL, db) {
     if (parsedSQL["WHERE"]) {
         workingTable = where(workingTable, parsedSQL["WHERE"], parsedSQL["COLUMNS"], out);
     }
-    console.log(parsedSQL);
     let groups;
     if (parsedSQL["GROUP"]) {
         groups = group(workingTable, parsedSQL["GROUP"], parsedSQL["COLUMNS"], out);
@@ -157,7 +172,6 @@ function group(table, groupColumns, selectClause, out) {
     let groups = new Map();
     let groupLookup = [];
     const SPACING = "-------";
-    console.log("grouping");
     for (let i = 0; i !== table["values"].length; ++i) {
         let groupKey = "";
         for (let column of groupColumns) {
@@ -254,7 +268,6 @@ function evaluate(whereClause, columnNames, rowValues, selectClause, allRows) {
             let argument = expr["expr"];
             let vals = [];
             for (let row of allRows) {
-                console.log(argument);
                 if (argument["type"] === "atom" && expr["val"]["column"] === "*") {
                     vals.push(true);
                 } else {

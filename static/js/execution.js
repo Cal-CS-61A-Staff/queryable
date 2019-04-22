@@ -61,13 +61,7 @@ export async function execute(command) {
             return ["The command " + command.split(" ")[0] + " does not exist."];
         }
     }
-    let visualization;
-    try {
-        let parsed = parse(command);
-        visualization = visualize(parsed, db);
-    } catch (err) {
-        console.log(err);
-    }
+
     let dbRet;
     try {
         dbRet = db.exec(command);
@@ -75,11 +69,16 @@ export async function execute(command) {
         return [`<span style="color: red">Error: ${err.message}</span>`];
     }
 
+    let visualization;
+    try {
+        visualization = visualize(command, db);
+    } catch (err) {
+        console.log(err);
+    }
+
     let out = [];
 
     if (visualization) {
-        visualization.push(tableFormat(dbRet[0]));
-
         let visualizeButton = document.createElement("BUTTON");
         visualizeButton.innerHTML = "Visualize";
         out.push(visualizeButton);
