@@ -1,12 +1,12 @@
 import {execute} from "./execution.js";
 
 const introText =
-`61A SQL Web Interpreter
-<a href="https://github.com/Cal-CS-61A-Staff/queryable">on GitHub</a>
+`<b><a href="https://cs61a.org" target="_blank">CS 61A</a> SQL Web Interpreter</b>
 --------------------------------------------------------------------------------
-Welcome to the 61A SQL interpreter!
+Welcome to the 61A SQL interpreter! 
 Type <code>.help</code> for instructions, or <code>.read</code> to load a file from your computer.
 The tables used in homework, labs, and lecture are already available to use.
+Check out the code for this app on <a href="https://github.com/Cal-CS-61A-Staff/queryable" target="_blank">GitHub</a>.
 `;
 
 function initializeAce(editorDiv) {
