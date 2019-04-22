@@ -98,6 +98,9 @@ function get_order(buffer) {
 }
 
 function get_limit(buffer) {
+    if (buffer.get_next().toUpperCase() === "DESC") {
+        buffer.pop_next();
+    }
     return get_expr(buffer);
 }
 
