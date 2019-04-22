@@ -54,7 +54,12 @@ export function initializeInterpreter(divName) {
         </div>`;
 
     let history = [""];
-    let i = 0;
+    let loaded = JSON.parse(localStorage.getItem('history'));
+    if (loaded) {
+        history = loaded;
+    }
+
+    let i = history.length - 1;
 
     let div = $(`#${divName}`);
     div.html(template);
@@ -86,6 +91,9 @@ export function initializeInterpreter(divName) {
         history[i] = val.trim();
         ++i;
         history.push("");
+
+        localStorage.setItem('history', JSON.stringify(history));
+
         let displayVal = val.replace(/\n/g, "\n        ");
         outputDiv.append("sqlite> " + displayVal + "\n");
 
