@@ -1,12 +1,12 @@
 import {execute} from "./execution.js";
 
 const introText =
-`61A SQL Web Interpreter
-<a href="https://github.com/Cal-CS-61A-Staff/queryable">on GitHub</a>
+`<b><a href="https://cs61a.org" target="_blank">CS 61A</a> SQL Web Interpreter</b>
 --------------------------------------------------------------------------------
-Welcome to the 61A SQL interpreter!
+Welcome to the 61A SQL interpreter! 
 Type <code>.help</code> for instructions, or <code>.read</code> to load a file from your computer.
 The tables used in homework, labs, and lecture are already available to use.
+Check out the code for this app on <a href="https://github.com/Cal-CS-61A-Staff/queryable" target="_blank">GitHub</a>.
 `;
 
 function initializeAce(editorDiv) {
@@ -54,7 +54,12 @@ export function initializeInterpreter(divName) {
         </div>`;
 
     let history = [""];
-    let i = 0;
+    let loaded = JSON.parse(localStorage.getItem('history'));
+    if (loaded) {
+        history = loaded;
+    }
+
+    let i = history.length - 1;
 
     let div = $(`#${divName}`);
     div.html(template);
@@ -86,6 +91,9 @@ export function initializeInterpreter(divName) {
         history[i] = val.trim();
         ++i;
         history.push("");
+
+        localStorage.setItem('history', JSON.stringify(history));
+
         let displayVal = val.replace(/\n/g, "\n        ");
         outputDiv.append("sqlite> " + displayVal + "\n");
 
@@ -119,8 +127,11 @@ export function initializeInterpreter(divName) {
         editor.commands.addCommand({
             name: "ctrl-enter",
             bindKey: { win: "Ctrl+Enter", mac: "Cmd+Enter"},
-            exec: function(editor, ...rest) {run(editor.getValue().replace(/\r/g, ""), db);}
+            exec: function(editor, ...rest) {run(editor.getValue().replace(/\r/g, ""));}
         });
+
+        editor.commands.removeCommand('find');
+        editor.commands.removeCommand('gotoline');
 
         let old_down_arrow = editor.commands.commandKeyBinding.down;
         editor.commands.addCommand({
