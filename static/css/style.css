@@ -127,3 +127,9 @@ button {
     padding: 1px 7px 2px;
     color: buttontext;
 }
+
+#loadingDiv {
+    position:absolute;
+    top:50%;
+    left:50%;
+}
