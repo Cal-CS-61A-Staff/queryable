@@ -94,8 +94,7 @@ export async function execute(command) {
         nextButton.innerHTML = "next";
 
         $(visualizePane).append(prevButton).append(nextButton).append(innerVisualizePane);
-        $(nextButton).hide();
-        $(prevButton).hide();
+        $(visualizePane).hide();
 
         out.push(visualizePane);
 
@@ -113,6 +112,7 @@ export async function execute(command) {
                 i = Math.min(i + 1, visualization.length - 1);
                 innerVisualizePane.innerHTML = visualization[i];
             });
+            $(visualizePane).show();
         })
     }
 
