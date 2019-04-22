@@ -113,7 +113,7 @@ export async function execute(command) {
         $(lastButton).addClass("btn btn-secondary");
 
         let buttons = document.createElement("DIV");
-        $(buttons).addClass("btn-group visButtons");
+        $(buttons).addClass("btn-group  btn-group-sm visButtons");
         $(buttons).append(firstButton).append(prevButton).append(nextButton).append(lastButton);
 
         let closeVisualizeButton = document.createElement("BUTTON");
