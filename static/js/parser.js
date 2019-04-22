@@ -52,7 +52,8 @@ function get_expression(buffer) {
         "GROUP": get_groups,
         "HAVING": get_expr,
         "ORDER": get_order,
-        "LIMIT": get_limit
+        "LIMIT": get_limit,
+        "DESC": get_limit
     };
     if (buffer.empty) {
         throw "No tokens found";
@@ -98,7 +99,10 @@ function get_order(buffer) {
 }
 
 function get_limit(buffer) {
-    return get_expr();
+    if (buffer.get_next().toUpperCase() === "LIMIT") {
+        buffer.pop_next();
+    }
+    return get_expr(buffer);
 }
 
 function build_aliased(callback) {
