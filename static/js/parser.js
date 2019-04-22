@@ -93,7 +93,7 @@ function get_order(buffer) {
 }
 
 function get_limit(buffer) {
-    return get_expr();
+    return get_expr(buffer);
 }
 
 function build_aliased(callback) {
