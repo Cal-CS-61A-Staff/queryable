@@ -122,6 +122,18 @@ export function initializeInterpreter(divName) {
             exec: function(editor, ...rest) {run(editor.getValue().replace(/\r/g, ""), db);}
         });
 
+        editor.commands.addCommand({
+            name: "ctrl-l",
+            bindKey: { win: "Ctrl+L", mac: "Cmd+L"},
+            exec: function(editor, ...rest) {}
+        });
+
+        editor.commands.addCommand({
+            name: "ctrl-f",
+            bindKey: { win: "Ctrl+F", mac: "Cmd+F"},
+            exec: function(editor, ...rest) {}
+        });
+
         let old_down_arrow = editor.commands.commandKeyBinding.down;
         editor.commands.addCommand({
             name: "downarrow",
