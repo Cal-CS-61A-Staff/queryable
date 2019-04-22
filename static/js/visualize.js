@@ -18,7 +18,6 @@ export function visualize(sql, db) {
         out.push(tableFormat(db.exec(sql)[0]));
         return out;
     }
-
 }
 
 function select(parsedSQL, db) {
