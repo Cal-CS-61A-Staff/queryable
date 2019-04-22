@@ -133,3 +133,8 @@ button {
     top:50%;
     left:50%;
 }
+
+.visButtons {
+    margin-right:15px;
+}
+

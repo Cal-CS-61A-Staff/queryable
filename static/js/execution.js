@@ -77,47 +77,90 @@ export async function execute(command) {
 
     let out = [];
 
+    for (let table of dbRet) {
+        out.push(tableFormat(table));
+    }
+
     if (visualization) {
         visualization.push(tableFormat(dbRet[0]));
 
         let visualizeButton = document.createElement("BUTTON");
+        $(visualizeButton).addClass("btn btn-info btn-sm");
         visualizeButton.innerHTML = "Visualize";
         out.push(visualizeButton);
 
-        let visualizePane = $.parseHTML("<div class='visualize-pane'' </div>");
+        let visualizePane = document.createElement("DIV");
+        $(visualizePane).addClass('card');
+        let visualizePaneHeader = document.createElement("DIV");
+        $(visualizePaneHeader).addClass('card-header');
         let innerVisualizePane = document.createElement("DIV");
+        $(innerVisualizePane).addClass('card-body');
+
+        let firstButton = document.createElement("BUTTON");
+        firstButton.innerHTML = "&lt;&lt;";
+        $(firstButton).addClass("btn btn-secondary");
 
         let prevButton = document.createElement("BUTTON");
-        prevButton.innerHTML = "prev";
+        prevButton.innerHTML = "&lt;";
+        $(prevButton).addClass("btn btn-secondary");
 
         let nextButton = document.createElement("BUTTON");
-        nextButton.innerHTML = "next";
+        nextButton.innerHTML = "&gt;";
+        $(nextButton).addClass("btn btn-secondary");
 
-        $(visualizePane).append(prevButton).append(nextButton).append(innerVisualizePane);
+        let lastButton = document.createElement("BUTTON");
+        lastButton.innerHTML = "&gt;&gt;";
+        $(lastButton).addClass("btn btn-secondary");
+
+        let buttons = document.createElement("DIV");
+        $(buttons).addClass("btn-group visButtons");
+        $(buttons).append(firstButton).append(prevButton).append(nextButton).append(lastButton);
+
+        let closeVisualizeButton = document.createElement("BUTTON");
+        closeVisualizeButton.innerHTML = "Hide Visualization";
+        $(closeVisualizeButton).addClass("btn btn-info btn-sm");
+
+        $(visualizePaneHeader).append(buttons).append(closeVisualizeButton);
+        $(visualizePane).append(visualizePaneHeader);
+
+        let tableRenderArea = document.createElement("DIV");
+        $(innerVisualizePane).append(tableRenderArea);
+
+        $(visualizePane).append(innerVisualizePane);
         $(visualizePane).hide();
 
         out.push(visualizePane);
 
         let i = 0;
         $(visualizeButton).click(() => {
-            innerVisualizePane.innerHTML = visualization[0];
+            tableRenderArea.innerHTML = visualization[0];
             $(visualizeButton).hide();
             $(nextButton).show();
             $(prevButton).show();
-            $(prevButton).click(() => {
-                i = Math.max(i - 1, 0);
-                innerVisualizePane.innerHTML = visualization[i];
-            });
-            $(nextButton).click(() => {
-                i = Math.min(i + 1, visualization.length - 1);
-                innerVisualizePane.innerHTML = visualization[i];
-            });
             $(visualizePane).show();
-        })
-    }
-
-    for (let table of dbRet) {
-        out.push(tableFormat(table));
+        });
+        $(firstButton).click(() => {
+            i = 0;
+            tableRenderArea.innerHTML = visualization[i];
+        });
+        $(prevButton).click(() => {
+            i = Math.max(i - 1, 0);
+            tableRenderArea.innerHTML = visualization[i];
+        });
+        $(nextButton).click(() => {
+            i = Math.min(i + 1, visualization.length - 1);
+            tableRenderArea.innerHTML = visualization[i];
+        });
+        $(lastButton).click(() => {
+            i = visualization.length - 1;
+            tableRenderArea.innerHTML = visualization[i];
+        });
+        $(closeVisualizeButton).click(() => {
+            $(visualizePane).hide();
+            $(visualizeButton).show();
+            i = 0;
+            tableRenderArea.innerHTML = visualization[i];
+        });
     }
 
     return out;
