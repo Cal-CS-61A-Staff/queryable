@@ -252,7 +252,7 @@ function evaluateName(expr, columnNames, rowValues, selectClause) {
     }
     for (let clause of selectClause) {
         if (clause["alias"] && clause["alias"][0] === targetName) {
-            return evaluate(clause["expr"], columnNames, rowValues, selectClause, out)
+            return evaluate(clause["expr"], columnNames, rowValues, selectClause)
         }
     }
     assert(false, "Unable to evaluate column name: " + targetName);
