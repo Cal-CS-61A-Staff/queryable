@@ -1,8 +1,3 @@
-/**
- * Should return a sequence of DOM objects that can be loaded into the visualizer
- * @param parsedSQL
- * @param db - Handle for active sql.js database
- */
 import {assert, placeHorizontally, tableFormat, generateHslaColors} from "./utils.js";
 import {parse} from "./parser.js";
 
