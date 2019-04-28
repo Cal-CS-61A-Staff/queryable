@@ -133,6 +133,12 @@ export function initializeInterpreter(divName) {
         editor.commands.removeCommand('find');
         editor.commands.removeCommand('gotoline');
 
+        editor.commands.addCommand({
+            name: "ctrl-l",
+            bindKey: { win: "Ctrl+L", mac: "Ctrl+L"},
+            exec: function(editor, ...rest) { outputDiv.html(""); }
+        });
+
         let old_down_arrow = editor.commands.commandKeyBinding.down;
         editor.commands.addCommand({
             name: "downarrow",
