@@ -140,6 +140,10 @@ function get_expr(buffer) {
             buffer.pop_next();
             val = get_expr(buffer);
             assert(buffer.pop_next() === ")", "Parens not closed correctly");
+        } else if (buffer.get_next() === '-' || buffer.get_next() === '+') {
+            // unary minus
+            let operator = buffer.pop_next();
+            val = {type: "combination", operator: operator, left: {type: "atom", val: {type: "numeric", val: "0"}}, right: get_expr(buffer)}
         } else {
             // grab single
             let first = buffer.pop_next();
