@@ -269,9 +269,9 @@ function evaluate(whereClause, columnNames, rowValues, selectClause, allRows) {
                 }
             }
             if (func === "max") {
-                return Math.max(vals);
+                return Math.max(...vals);
             } else if (func === "min") {
-                return Math.min(vals);
+                return Math.min(...vals);
             } else if (func === "count") {
                 return vals.length;
             } else if (func === "sum") {
